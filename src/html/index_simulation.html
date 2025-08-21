@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Satellite Tracker</title>
+    <link rel="stylesheet" href="../css/main/style_main.css" />
+    <link rel="stylesheet" href="../css/simulation/style_simulation.css" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="/Icons/logo_transparent_white.png?v=1"
+    />
+  </head>
+  <body>
+    <header>
+      <a href="../../index.html" class="logo">
+        <p>Orbit</p>
+        <img src="/Icons/logo_transparent_white.png" alt="" />
+        <p>Pedia</p>
+      </a>
+      <nav>
+        <a href="./index_simulation.html" target="_self">Satellite Tracker</a>
+        <a href="./index_rockets.html">Rockets</a>
+        <a href="../../index.html" target="_self">Classifier</a>
+        <a href="./index_login.html"><div class="profile">Login</div></a>
+      </nav>
+    </header>
+
+    <div class="satInfo">
+      Name<br />
+      <span id="name"></span><br />
+      Latitude<br />
+      <span id="lat"></span><br />
+      Longitude<br />
+      <span id="lng"></span><br />
+      Height (km)<br />
+      <span id="height"></span><br />
+      Velocity (km/s)<br />
+      <span id="velocity"></span><br />
+    </div>
+
+    <div class="buttons">
+      <div class="searchbar">
+        <input
+          type="text"
+          placeholder="Enter a Satellite Name"
+          id="key"
+          name="key"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <div class="suggestions" id="suggestions"></div>
+
+    <div class="toggle" id="toggle">
+      Toggle Focus
+
+      <label class="switch">
+        <input type="checkbox" id="checkbox" />
+        <span class="slider round"></span>
+      </label>
+    </div>
+    <script type="module" src="../js/simulation/script_simulation.js"></script>
+  </body>
+</html>
