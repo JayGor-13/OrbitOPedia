@@ -358,7 +358,8 @@ section.stats .text {
 }
 
 section.simulation,
-section.classifier {
+section.iss,
+section.exoplanets {
   background-image: url("/Homepage/starry_bg.jpg");
   background-position: center;
   background-size: cover;
@@ -370,9 +371,17 @@ section.rockets {
   background-size: cover;
 }
 
+section.weather {
+  background-image: url("/Homepage/starry_bg.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
 section.simulation .container,
 section.rockets .container,
-section.classifier .container {
+section.iss .container,
+section.weather .container,
+section.exoplanets .container {
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -389,7 +398,9 @@ section.classifier .container {
 
 section.simulation .card,
 section.rockets .card,
-section.classifier .card {
+section.iss .card,
+section.weather .card,
+section.exoplanets .card {
   /* border: 1px solid skyblue; */
   padding: 30px;
   padding-bottom: 0px;
@@ -417,7 +428,21 @@ section.rockets .image {
   /* box-shadow: 0px 0px 10px 15px rgb(0, 0, 0); */
 }
 
-section.classifier .image {
+section.iss .image {
+  background-image: url("/Homepage/iss_bg.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+section.weather .image {
+  background-image: url("/Homepage/solar_bg.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+section.exoplanets .image {
   background-image: url("/Homepage/galaxy.jpg");
   background-size: cover;
   background-repeat: no-repeat;
@@ -427,13 +452,17 @@ section.classifier .image {
 section.simulation h1,
 section.rockets h1,
 section.about h1,
-section.classifier h1 {
+section.iss h1,
+section.weather h1,
+section.exoplanets h1 {
   letter-spacing: 1.25px;
 }
 
 section.simulation h2,
 section.rockets h2,
-section.classifier h2 {
+section.iss h2,
+section.weather h2,
+section.exoplanets h2 {
   font-size: 18px;
   color: #ffffff7d;
   font-weight: 600;
@@ -443,7 +472,9 @@ section.classifier h2 {
 section.simulation p,
 section.rockets p,
 section.about p,
-section.classifier p{
+section.iss p,
+section.weather p,
+section.exoplanets p {
   font-size: 16px;
   letter-spacing: 1.1px;
   line-height: 30px;
@@ -452,7 +483,9 @@ section.classifier p{
 section.simulation a,
 section.grid a,
 section.rockets a,
-section.classifier a{
+section.iss a,
+section.weather a,
+section.exoplanets a {
   display: block;
   padding: 15px;
   width: fit-content;
@@ -470,7 +503,9 @@ section.classifier a{
 section.simulation a:hover,
 section.grid a:hover,
 section.rockets a:hover,
-section.classifier a:hover {
+section.iss a:hover,
+section.weather a:hover,
+section.exoplanets a:hover {
   background-color: white;
   border-color: transparent;
   color: black;
@@ -505,7 +540,15 @@ section.rockets .card:nth-child(2) {
   transition-delay: 200ms;
 }
 
-section.classifier .card:nth-child(2) {
+section.iss .card:nth-child(2) {
+  transition-delay: 200ms;
+}
+
+section.weather .card:nth-child(2) {
+  transition-delay: 200ms;
+}
+
+section.exoplanets .card:nth-child(2) {
   transition-delay: 200ms;
 }
 

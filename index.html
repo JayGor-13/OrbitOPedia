@@ -27,11 +27,12 @@
         <p>Pedia</p>
       </a>
       <nav>
-        <a href="#simulation" target="_self">Satellite Tracker</a>
-        <a href="#rockets">Rockets</a>
-        <a href="#classifier" target="_self">Classifier</a>
-        <a href="./src/html/index_login.html"><div class="profile">Login</div></a>
-      </nav>
+      <a href="#simulation" target="_self">Satellite Tracker</a>
+      <a href="#rockets">Rockets</a>
+      <a href="#iss">ISS Tracker</a>
+      <a href="#weather">Space Weather</a>
+      <a href="#exoplanets">Exoplanets</a>
+    </nav>
     </header>
 
     <section class="hero" id="hero">
@@ -98,18 +99,48 @@
         <div class="card image hidden"></div>
       </div>
     </section>
-    <section class="classifier" id="classifier">
+    <section class="iss" id="iss">
       <div class="container">
         <div class="card image hidden"></div>
         <div class="card info hidden">
-          <h1>Celestial Object Classifier</h1>
-          <h2>Using AI ML</h2>
+          <h1>ISS Live Tracker</h1>
+          <h2>Real-Time Position & Crew</h2>
 
           <p>
-            Classify celestial objects from images with high accuracy using advanced machine learning. Detect stars, planets, asteroids, and galaxies. Ideal for astronomers and space enthusiasts. Enhance your cosmic exploration today!
+            Track the International Space Station in real-time as it orbits Earth at 17,500 mph. View current position, altitude, velocity, and see who's on board right now. Explore the daily life of astronauts in space.
           </p>
 
-          <a href="http://localhost:5000" target="_self">Open Classifier</a>
+          <a href="src/html/index_iss.html" target="_self">Track ISS</a>
+        </div>
+      </div>
+    </section>
+    <section class="weather" id="weather">
+      <div class="container">
+        <div class="card info hidden">
+          <h1>Space Weather Dashboard</h1>
+          <h2>Solar Activity & Aurora</h2>
+
+          <p>
+            Monitor real-time space weather conditions including solar wind speed, geomagnetic storm levels, and aurora forecasts. Stay informed about solar flares, CMEs, and their potential impact on Earth.
+          </p>
+
+          <a href="src/html/index_weather.html" target="_self">View Weather</a>
+        </div>
+        <div class="card image hidden"></div>
+      </div>
+    </section>
+    <section class="exoplanets" id="exoplanets">
+      <div class="container">
+        <div class="card image hidden"></div>
+        <div class="card info hidden">
+          <h1>Exoplanet Explorer</h1>
+          <h2>Discover Worlds Beyond</h2>
+
+          <p>
+            Browse NASA's database of confirmed exoplanets. Search by name, filter by distance, size, and discover potentially habitable worlds orbiting distant stars. Find the next Earth out there.
+          </p>
+
+          <a href="src/html/index_exoplanets.html" target="_self">Explore Planets</a>
         </div>
       </div>
     </section>
@@ -117,9 +148,11 @@
       <div class="col">
         <h3>Services</h3>
         <ul>
-          <li><a href="src/html/index.html#simulation">Satellite Tracker</a></li>
-          <li><a href="src/html/index.html#rockets">Rocket Gallery</a></li>
-          <li><a href="src/html/index.html#classifier">Classifier</a></li>
+          <li><a href="#simulation">Satellite Tracker</a></li>
+          <li><a href="#rockets">Rocket Gallery</a></li>
+          <li><a href="#iss">ISS Tracker</a></li>
+          <li><a href="#weather">Space Weather</a></li>
+          <li><a href="#exoplanets">Exoplanets</a></li>
         </ul>
       </div>
 
@@ -127,9 +160,6 @@
         <h3>Extra Links</h3>
         <ul>
           <li><a href="">Homepage</a></li>
-          <li><a href="src/html/index_login.html">Login</a></li>
-          <li><a href="src/html/index_signup.html">Signup</a></li>
-          <li><a href="#">Profile</a></li>
         </ul>
       </div>
 

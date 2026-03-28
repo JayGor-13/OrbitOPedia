@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exoplanet Explorer | OrbitOPedia</title>
+    <link rel="icon" type="image/x-icon" href="/Icons/logo_transparent_white.png?v=1" />
+    <link rel="stylesheet" href="../css/main/style_main.css" />
+    <link rel="stylesheet" href="../css/exoplanets/style_exoplanets.css" />
+    <style>
+      body {
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="../../index.html" class="logo">
+        <p>Orbit</p>
+        <img src="/Icons/logo_transparent_white.png" alt="" />
+        <p>Pedia</p>
+      </a>
+      <nav>
+        <a href="../../index.html#simulation">Satellite Tracker</a>
+        <a href="../../index.html#rockets">Rockets</a>
+        <a href="./index_iss.html">ISS</a>
+        <a href="./index_weather.html">Space Weather</a>
+        <a href="./index_exoplanets.html" aria-current="page">Exoplanets</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Live Catalog</p>
+          <h1>Exoplanet Explorer</h1>
+          <p class="subtitle">
+            Browse 5,000+ discovered worlds. Filter, search, and sort to find intriguing planets.
+          </p>
+        </div>
+        <div class="controls">
+          <input id="search" type="text" placeholder="Search planet name..." />
+          <select id="sort">
+            <option value="disc_year">Newest discoveries</option>
+            <option value="sy_dist">Closest first</option>
+            <option value="pl_rade">Smallest radius</option>
+            <option value="pl_masse">Smallest mass</option>
+          </select>
+        </div>
+      </header>
+
+      <section id="stats" class="stats">Loading...</section>
+      <section id="planets" class="grid"></section>
+      <section id="exo-error" class="error hidden"></section>
+    </main>
+
+    <script type="module" src="../js/exoplanets/script_exoplanets.js"></script>
+  </body>
+</html>

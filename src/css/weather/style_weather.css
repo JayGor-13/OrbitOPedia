@@ -1,0 +1,248 @@
+/* Space Weather Page - Matching OrbitOPedia Main Theme */
+
+body {
+  background-color: rgb(5, 0, 35);
+  background-image: url("/Homepage/starry_bg.jpg");
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/* Page content wrapper */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 120px 60px 60px;
+}
+
+/* Hero section - override main CSS */
+.page > header.hero {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 40px;
+  padding: 40px;
+  background-color: #2525255e;
+  backdrop-filter: blur(5px);
+  border-radius: 15px;
+  flex-wrap: wrap;
+  height: auto !important;
+  background-image: none !important;
+}
+
+.page > header.hero h1 {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 1.25px;
+  margin: 8px 0;
+  color: #fff;
+}
+
+.eyebrow {
+  color: #f59f00;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.subtitle {
+  color: #ffffff7d;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.badges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: transparent;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid white;
+  transition: 0.25s;
+}
+
+.badge:hover {
+  background-color: white;
+  color: black;
+}
+
+.badge-secondary {
+  border-color: #f59f00;
+  color: #f59f00;
+}
+
+.badge-secondary:hover {
+  background-color: #f59f00;
+  color: black;
+}
+
+/* Grid layout - override main CSS section styles */
+section.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 0 !important;
+  height: auto !important;
+  flex-direction: row;
+  background-image: none !important;
+  justify-content: start;
+  align-items: start;
+}
+
+/* Card styling */
+.card {
+  background-color: #1c1c1c69;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 25px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.card-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.muted {
+  color: #ffffff7d;
+  font-size: 13px;
+}
+
+/* Metrics */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.label {
+  color: #ffffff7d;
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.value {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Kp Index Bar */
+.kp {
+  margin: 20px 0;
+}
+
+.kp-bar {
+  width: 100%;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.kp-bar div {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #51cf66, #f59f00, #ff6b6b);
+  transition: width 0.6s ease;
+  border-radius: 10px;
+}
+
+/* Aurora list */
+#aurora {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#aurora .item {
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+#aurora .item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Error state */
+#weather-error {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 15px;
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  color: #ffc9c9;
+  text-align: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page {
+    padding: 100px 20px 40px;
+  }
+
+  .page > header.hero {
+    flex-direction: column;
+    padding: 25px;
+  }
+
+  .page > header.hero h1 {
+    font-size: 28px;
+  }
+
+  section.grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}

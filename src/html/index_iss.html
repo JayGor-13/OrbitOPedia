@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ISS Live Tracker | OrbitOPedia</title>
+    <link rel="icon" type="image/x-icon" href="/Icons/logo_transparent_white.png?v=1" />
+    <link rel="stylesheet" href="../css/main/style_main.css" />
+    <link rel="stylesheet" href="../css/iss/style_iss.css" />
+    <style>
+      body {
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="../../index.html" class="logo">
+        <p>Orbit</p>
+        <img src="/Icons/logo_transparent_white.png" alt="" />
+        <p>Pedia</p>
+      </a>
+      <nav>
+        <a href="../../index.html#simulation">Satellite Tracker</a>
+        <a href="../../index.html#rockets">Rockets</a>
+        <a href="./index_iss.html" aria-current="page">ISS</a>
+        <a href="./index_weather.html">Space Weather</a>
+        <a href="./index_exoplanets.html">Exoplanets</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Live Now</p>
+          <h1>International Space Station</h1>
+          <p class="subtitle">
+            Real-time position, speed, altitude, crew on board, and latest imagery from space.
+          </p>
+        </div>
+        <div class="badges">
+          <span class="badge">Auto-refreshing</span>
+          <span class="badge badge-secondary">Free public data</span>
+        </div>
+      </header>
+
+      <section class="grid">
+        <article class="card">
+          <div class="card-header">
+            <h2>Position</h2>
+            <span id="iss-updated" class="muted">--</span>
+          </div>
+          <div class="metrics">
+            <div>
+              <p class="label">Latitude</p>
+              <p id="iss-lat" class="value">--</p>
+            </div>
+            <div>
+              <p class="label">Longitude</p>
+              <p id="iss-lon" class="value">--</p>
+            </div>
+          </div>
+          <div class="metrics">
+            <div>
+              <p class="label">Altitude</p>
+              <p id="iss-altitude" class="value">-- km</p>
+            </div>
+            <div>
+              <p class="label">Speed</p>
+              <p id="iss-speed" class="value">-- km/h</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Crew on Board</h2>
+            <span id="crew-updated" class="muted">--</span>
+          </div>
+          <ul id="crew-list" class="list"></ul>
+        </article>
+
+        <article class="card photo-card">
+          <div class="card-header">
+            <h2>Window from Space</h2>
+            <span id="photo-date" class="muted">--</span>
+          </div>
+          <div class="photo-container">
+            <img id="apod-img" alt="Astronomy Photo of the Day" />
+          </div>
+          <p id="photo-title" class="muted"></p>
+        </article>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Recent Telemetry</h2>
+          <span class="muted">Auto-refreshing every 10s</span>
+        </div>
+        <div id="history" class="history"></div>
+      </section>
+
+      <section id="iss-error" class="error hidden"></section>
+    </main>
+
+    <script type="module" src="../js/iss/script_iss.js"></script>
+  </body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Space Weather Dashboard | OrbitOPedia</title>
+    <link rel="icon" type="image/x-icon" href="/Icons/logo_transparent_white.png?v=1" />
+    <link rel="stylesheet" href="../css/main/style_main.css" />
+    <link rel="stylesheet" href="../css/weather/style_weather.css" />
+    <style>
+      body {
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="../../index.html" class="logo">
+        <p>Orbit</p>
+        <img src="/Icons/logo_transparent_white.png" alt="" />
+        <p>Pedia</p>
+      </a>
+      <nav>
+        <a href="../../index.html#simulation">Satellite Tracker</a>
+        <a href="../../index.html#rockets">Rockets</a>
+        <a href="./index_iss.html">ISS</a>
+        <a href="./index_weather.html" aria-current="page">Space Weather</a>
+        <a href="./index_exoplanets.html">Exoplanets</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Live Data</p>
+          <h1>Space Weather Dashboard</h1>
+          <p class="subtitle">
+            Solar wind, geomagnetic activity, and aurora forecasts — refreshed automatically.
+          </p>
+        </div>
+        <div class="badges">
+          <span class="badge">Auto-refresh</span>
+          <span class="badge badge-secondary">NOAA / SWPC</span>
+        </div>
+      </header>
+
+      <section class="grid">
+        <article class="card">
+          <div class="card-header">
+            <h2>Solar Wind</h2>
+            <span id="sw-updated" class="muted">--</span>
+          </div>
+          <div class="metrics">
+            <div>
+              <p class="label">Speed</p>
+              <p id="sw-speed" class="value">-- km/s</p>
+            </div>
+            <div>
+              <p class="label">Density</p>
+              <p id="sw-density" class="value">-- p/cm³</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Geomagnetic (Kp)</h2>
+            <span id="kp-updated" class="muted">--</span>
+          </div>
+          <div class="kp">
+            <div class="kp-bar">
+              <div id="kp-bar-fill"></div>
+            </div>
+            <p id="kp-value" class="value">--</p>
+            <p id="kp-status" class="muted">--</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <h2>Aurora Forecast</h2>
+            <span class="muted">NOAA 3-day forecast</span>
+          </div>
+          <div id="aurora" class="list"></div>
+        </article>
+      </section>
+
+      <section id="weather-error" class="error hidden"></section>
+    </main>
+
+    <script type="module" src="../js/weather/script_weather.js"></script>
+  </body>
+</html>

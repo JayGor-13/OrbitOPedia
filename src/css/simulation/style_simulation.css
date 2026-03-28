@@ -50,6 +50,9 @@ div.buttons {
   bottom: 2%;
   right: 1%;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 div.buttons .searchbar input {
@@ -67,6 +70,24 @@ div.buttons .searchbar input {
 div.buttons .searchbar input:focus {
   outline: 1px solid #ffffff;
   background-color: #0e0e0e;
+}
+
+.status {
+  width: 300px;
+  min-height: 20px;
+  color: #b5e2ff;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background-color: rgba(30, 30, 30, 0.7);
+  border: 1px solid #2e71ff33;
+  box-shadow: 0 0 8px #00000044;
+}
+
+.status.error {
+  color: #ffd1d1;
+  border-color: #ff626240;
 }
 
 .suggestions {

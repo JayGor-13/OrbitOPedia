@@ -7,6 +7,21 @@ import { getGroundTracks, getLatLngObj, getOrbitTrack, getSatelliteInfo, getSate
 const scale = 0.02;
 const radius = 6371 * scale;
 const intervalTime = 1000;
+const MAX_SATELLITES = 300; // cap to keep performance stable
+const FALLBACK_TLES = [
+  `ISS (ZARYA)
+1 25544U 98067A   24169.56406250  .00016717  00000+0  30259-3 0  9997
+2 25544  51.6413  74.3405 0005465  54.8881  62.6016 15.49894142466761`,
+  `HUBBLE SPACE TELESCOPE
+1 20580U 90037B   24169.54695190  .00001093  00000+0  59807-4 0  9993
+2 20580  28.4695  47.3805 0002970  60.6919  76.6243 15.09200061416251`,
+  `NOAA 19
+1 33591U 09005A   24169.51714222  .00000138  00000+0  11429-3 0  9990
+2 33591  98.9459 159.6719 0014423 176.9155 183.2062 14.12501960908045`,
+  `TERRA
+1 25994U 99068A   24169.53335552  .00000083  00000+0  58625-4 0  9993
+2 25994  98.2127 220.5113 0001698  93.7561  29.5647 14.57111213172570`,
+];
 
 // Global Variables
 let satellites = [];
@@ -90,34 +105,96 @@ function addLighting(scene) {
 }
 
 function fetchTLEsFromCelestrak(callback) {
-  // const url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle';
-  const url = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle';
+  const sources = [
+    {
+      name: "GitHub mirror",
+      url: "https://raw.githubusercontent.com/shashwatak/satellite-js/master/test/resources/tle.txt",
+      proxies: [(u) => u],
+    },
+    {
+      name: "Celestrak",
+      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle",
+      proxies: [
+        (u) => u,
+        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+      ],
+    },
+  ];
 
-  fetch(url)
-    .then((response) => response.text())
-    .then((data) => {
-      const lines = data.split("\n");
-      const tles = [];
+  setStatus("Loading live satellites...");
+  let lastError = "";
 
-      for (let i = 0; i < lines.length; i += 3) {
-        const tle = lines
-          .slice(i, i + 3)
-          .join("\n")
-          .trim();
-        if (tle !== "") tles.push(tle);
+  async function tryFetch() {
+    for (const source of sources) {
+      for (const makeUrl of source.proxies) {
+        try {
+          const fetchUrl = makeUrl(source.url);
+          console.log(`Trying to fetch TLEs from: ${fetchUrl}`);
+          setStatus(`Loading from ${source.name}...`);
+          const response = await fetch(fetchUrl);
+          if (!response.ok) {
+            lastError = `${source.name} responded ${response.status}`;
+            continue;
+          }
+
+          const data = await response.text();
+          if (data.trim().startsWith("<")) {
+            lastError = `${source.name} returned HTML (likely blocked)`;
+            continue;
+          }
+
+          const tles = parseTLEList(data, MAX_SATELLITES);
+          if (tles.length > 0) {
+            console.log(`Successfully loaded ${tles.length} satellites`);
+            setStatus(`Loaded ${tles.length} satellites from ${source.name}.`);
+            callback(tles);
+            return;
+          }
+          lastError = `${source.name} returned no TLE lines`;
+        } catch (error) {
+          lastError = `${source.name} failed: ${error.message}`;
+          console.log("Fetch failed, trying next option...", error.message);
+        }
       }
-      callback(tles);
-    })
-    .catch((error) => {
-      console.error("Error fetching TLEs from Celestrak:", error);
-      callback([]);
-    });
+    }
+    console.error("All fetch attempts failed for TLE data");
+    setStatus(
+      `Live data unavailable (${lastError || "no response"}). Using fallback satellites.`,
+      true
+    );
+    callback(FALLBACK_TLES);
+  }
+
+  tryFetch();
+}
+
+function parseTLEList(data, limit) {
+  const lines = data.split("\n");
+  const tles = [];
+  for (let i = 0; i < lines.length; i += 3) {
+    const tle = lines.slice(i, i + 3).join("\n").trim();
+    if (tle !== "" && !tle.startsWith("<")) tles.push(tle);
+    if (limit && tles.length >= limit) break;
+  }
+  return tles;
 }
 
 function initializeSatellites(tles) {
+  if (!tles || tles.length === 0) {
+    setStatus("Falling back to local sample satellites.", true);
+    tles = FALLBACK_TLES;
+  }
   satellites = tles.map((tle) => new Satellite(tle));
   setInterval(updateAllSatellites, intervalTime);
   setInterval(updateActiveSatellite, intervalTime);
+}
+
+function setStatus(message, isError = false) {
+  const el = document.getElementById("tle-status");
+  if (!el) return;
+  el.textContent = message;
+  el.className = isError ? "status error" : "status";
 }
 
 class Satellite {
