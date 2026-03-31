@@ -510,7 +510,7 @@ window.onload = function () {
 async function fetchRocketDetails(rocketId) {
   const apiCandidates = [
     `/api/rockets/${encodeURIComponent(rocketId)}`,
-    `http://localhost:5000/api/rockets/${encodeURIComponent(rocketId)}`,
+    `https://orbitopedia.onrender.com/api/rockets/${encodeURIComponent(rocketId)}`,
   ];
 
   try {

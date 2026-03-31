@@ -508,7 +508,7 @@ function handleRocketClick(rocket) {
 }
 
 async function fetchRocketData() {
-  const apiCandidates = ["/api/rockets", "http://localhost:5000/api/rockets"];
+  const apiCandidates = ["/api/rockets", "https://orbitopedia.onrender.com/api/rockets"];
   let lastError = "";
 
   for (const url of apiCandidates) {

@@ -9,7 +9,7 @@ const radius = 6371 * scale;
 const intervalTime = 1000;
 const MAX_SATELLITES = 300; // cap to keep performance stable
 const REFRESH_TLE_INTERVAL_MS = 60 * 1000;
-const SATELLITE_API_CANDIDATES = ["/api/satellites?limit=300", "http://localhost:5000/api/satellites?limit=300"];
+const SATELLITE_API_CANDIDATES = ["/api/satellites?limit=300", "https://orbitopedia.onrender.com/api/satellites?limit=300"];
 const FALLBACK_TLES = [
   `ISS (ZARYA)
 1 25544U 98067A   24169.56406250  .00016717  00000+0  30259-3 0  9997
