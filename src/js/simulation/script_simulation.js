@@ -150,13 +150,12 @@ async function fetchSatellitesFromApi() {
 function loadSatellitesFromBackend(callback) {
   setStatus("Loading satellites from backend API...");
   fetchSatellitesFromApi()
-    .then(({ tles, source }) => {
-      setStatus(`Loaded ${tles.length} satellites from backend (${source}).`);
+    .then(({ tles }) => {
+      setStatus(`Loaded ${tles.length} satellites from backend.`);
       callback(tles);
     })
-    .catch((error) => {
-      console.error("Satellite API load failed:", error.message);
-      setStatus(`Backend satellite API unavailable (${error.message}). Using fallback satellites.`, true);
+    .catch(() => {
+      setStatus("Live satellite feed unavailable. Using fallback satellites.", true);
       callback(FALLBACK_TLES);
     });
 }
