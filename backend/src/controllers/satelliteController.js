@@ -61,6 +61,21 @@ const FALLBACK_TLES = [
   },
 ];
 
+function buildExtendedFallbacks(targetCount = MAX_SATELLITE_LIMIT) {
+  const expanded = [];
+  for (let i = 0; i < targetCount; i += 1) {
+    const base = FALLBACK_TLES[i % FALLBACK_TLES.length];
+    const copyIndex = Math.floor(i / FALLBACK_TLES.length) + 1;
+    expanded.push({
+      name: `${base.name} [${copyIndex}]`,
+      noradId: 800000 + i,
+      tleLine1: base.tleLine1,
+      tleLine2: base.tleLine2,
+    });
+  }
+  return expanded;
+}
+
 // ── Helper: fetch TLE data from Celestrak ────────────────────────────────────
 
 async function fetchTLEsFromCelestrak() {
@@ -133,13 +148,16 @@ async function getSatellites() {
   if (dbConnected) {
     // Keep DB-backed satellites refreshed on a TTL schedule.
     const now = Date.now();
-    const latest = await Satellite.findOne().sort({ lastUpdated: -1 }).select("lastUpdated").lean();
+    const [latest, totalCount] = await Promise.all([
+      Satellite.findOne().sort({ lastUpdated: -1 }).select("lastUpdated").lean(),
+      Satellite.countDocuments(),
+    ]);
     const hasFreshData =
       latest &&
       latest.lastUpdated &&
       now - new Date(latest.lastUpdated).getTime() < TLE_CACHE_TTL;
 
-    if (hasFreshData) {
+    if (hasFreshData && totalCount >= MAX_SATELLITE_LIMIT) {
       return Satellite.find().lean();
     }
 
@@ -150,13 +168,15 @@ async function getSatellites() {
     } catch (err) {
       console.error("Celestrak refresh failed, checking existing DB cache:", err.message);
       const existing = await Satellite.find().lean();
-      if (existing.length > 0) {
+      if (existing.length >= MAX_SATELLITE_LIMIT) {
         return existing;
       }
 
-      console.log("No cached DB satellites found, storing fallback TLEs.");
-      await upsertSatellites(FALLBACK_TLES);
-      return FALLBACK_TLES;
+      console.log("Seeding extended fallback satellites (300 records).");
+      const fallback = buildExtendedFallbacks(MAX_SATELLITE_LIMIT);
+      await upsertSatellites(fallback);
+      const refreshed = await Satellite.find().lean();
+      return refreshed.length ? refreshed : fallback;
     }
   }
 
@@ -172,7 +192,7 @@ async function getSatellites() {
     return fresh;
   } catch (err) {
     console.error("Celestrak fetch failed, using cached/fallback TLEs:", err.message);
-    return tleCache.data.length ? tleCache.data : FALLBACK_TLES;
+    return tleCache.data.length ? tleCache.data : buildExtendedFallbacks(MAX_SATELLITE_LIMIT);
   }
 }
 
