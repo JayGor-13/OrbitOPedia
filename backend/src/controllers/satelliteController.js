@@ -29,6 +29,7 @@ const TLE_SOURCE_URL =
 const TLE_SOURCE_URLS = [
   TLE_SOURCE_URL,
   "https://www.celestrak.com/NORAD/elements/gp.php?GROUP=active&FORMAT=tle",
+  "https://raw.githubusercontent.com/shashwatak/satellite-js/master/test/resources/tle.txt",
 ];
 
 const TLE_CACHE_TTL = parseInt(process.env.TLE_CACHE_TTL || "3600", 10) * 1000;
