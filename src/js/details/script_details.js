@@ -508,21 +508,43 @@ window.onload = function () {
 };
 
 async function fetchRocketDetails(rocketId) {
+  const apiCandidates = [
+    `/api/rockets/${encodeURIComponent(rocketId)}`,
+    `http://localhost:5000/api/rockets/${encodeURIComponent(rocketId)}`,
+  ];
+
   try {
-    // const response = await fetch("/src/data/rockets.json");
-    // const rockets = await response.json();
+    let rocket = null;
+    let lastError = "";
 
-    // Find the rocket with the matching ID
-    const rocket = rocketData_Object.find((rocket) => rocket.id === rocketId);
+    for (const url of apiCandidates) {
+      try {
+        const response = await fetch(url, { method: "GET" });
+        if (!response.ok) {
+          lastError = `${url} returned ${response.status}`;
+          continue;
+        }
 
-    if (rocket) {
-      // Display rocket details
-      displayRocketDetails(rocket);
-    } else {
-      console.error("Rocket not found:", rocketId);
+        const payload = await response.json();
+        if (payload && payload.id) {
+          rocket = payload;
+          break;
+        }
+        lastError = `${url} returned invalid payload`;
+      } catch (err) {
+        lastError = `${url} failed: ${err.message}`;
+      }
     }
+
+    if (!rocket) {
+      throw new Error(lastError || `Rocket ${rocketId} not found`);
+    }
+
+    displayRocketDetails(rocket);
   } catch (error) {
     console.error("Error fetching rocket details:", error);
+    const rocketDetailsContainer = document.getElementById("rocketDetailsContainer");
+    rocketDetailsContainer.innerHTML = `<div class="details"><h2>Rocket data unavailable</h2><p>${error.message}</p></div>`;
   }
 }
 

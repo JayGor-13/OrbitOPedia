@@ -64,42 +64,73 @@ async function fetchTLEsFromCelestrak() {
   return parseTLEFile(response.data);
 }
 
+async function upsertSatellites(records) {
+  if (!Array.isArray(records) || records.length === 0) {
+    return;
+  }
+
+  const now = new Date();
+  const ops = records
+    .filter(
+      (sat) =>
+        sat &&
+        sat.name &&
+        sat.tleLine1 &&
+        sat.tleLine2 &&
+        sat.noradId !== null &&
+        sat.noradId !== undefined
+    )
+    .map((sat) => ({
+      updateOne: {
+        filter: { noradId: Number(sat.noradId) },
+        update: {
+          $set: {
+            name: sat.name,
+            tleLine1: sat.tleLine1,
+            tleLine2: sat.tleLine2,
+            lastUpdated: now,
+          },
+        },
+        upsert: true,
+      },
+    }));
+
+  if (ops.length > 0) {
+    await Satellite.bulkWrite(ops, { ordered: false });
+  }
+}
+
 // ── Helper: get satellites from cache / DB ────────────────────────────────────
 
 async function getSatellites() {
   const dbConnected = mongoose.connection.readyState === 1;
 
   if (dbConnected) {
-    // Try database first
-    const count = await Satellite.countDocuments();
-    if (count > 0) {
+    // Keep DB-backed satellites refreshed on a TTL schedule.
+    const now = Date.now();
+    const latest = await Satellite.findOne().sort({ lastUpdated: -1 }).select("lastUpdated").lean();
+    const hasFreshData =
+      latest &&
+      latest.lastUpdated &&
+      now - new Date(latest.lastUpdated).getTime() < TLE_CACHE_TTL;
+
+    if (hasFreshData) {
       return Satellite.find().lean();
     }
 
-    // DB empty – fetch from Celestrak, seed DB, and return
     try {
       const fresh = await fetchTLEsFromCelestrak();
-      console.log(`Attempting to insert ${fresh.length} satellites into MongoDB...`);
-      const result = await Satellite.insertMany(fresh, { ordered: false }).catch((err) => {
-        console.error("❌ Satellite DB seed FAILED:", err.message);
-        console.error("Full error:", JSON.stringify(err, null, 2));
-        return null;
-      });
-      if (result) {
-        console.log(`✅ Successfully inserted ${result.length} satellites into MongoDB`);
-      }
+      await upsertSatellites(fresh);
       return fresh;
     } catch (err) {
-      console.error("Celestrak fetch failed, using fallback TLEs:", err.message);
-      console.log(`Attempting to insert ${FALLBACK_TLES.length} fallback satellites...`);
-      const fbResult = await Satellite.insertMany(FALLBACK_TLES, { ordered: false }).catch((seedErr) => {
-        console.error("❌ Fallback satellite DB seed FAILED:", seedErr.message);
-        console.error("Full error:", JSON.stringify(seedErr, null, 2));
-        return null;
-      });
-      if (fbResult) {
-        console.log(`✅ Successfully inserted ${fbResult.length} fallback satellites`);
+      console.error("Celestrak refresh failed, checking existing DB cache:", err.message);
+      const existing = await Satellite.find().lean();
+      if (existing.length > 0) {
+        return existing;
       }
+
+      console.log("No cached DB satellites found, storing fallback TLEs.");
+      await upsertSatellites(FALLBACK_TLES);
       return FALLBACK_TLES;
     }
   }
@@ -168,7 +199,7 @@ async function getSatelliteById(req, res, next) {
   try {
     const { id } = req.params;
     const satellites = await getSatellites();
-    const sat = satellites.find((s) => s.noradId === id);
+    const sat = satellites.find((s) => String(s.noradId) === String(id));
 
     if (!sat) {
       return res.status(404).json({ error: `Satellite with NORAD ID ${id} not found` });
@@ -191,7 +222,7 @@ async function getSatellitePosition(req, res, next) {
   try {
     const { id } = req.params;
     const satellites = await getSatellites();
-    const sat = satellites.find((s) => s.noradId === id);
+    const sat = satellites.find((s) => String(s.noradId) === String(id));
 
     if (!sat) {
       return res.status(404).json({ error: `Satellite with NORAD ID ${id} not found` });

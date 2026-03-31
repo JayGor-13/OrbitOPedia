@@ -509,43 +509,49 @@ function handleRocketClick(rocket) {
 
 async function fetchRocketData() {
   const apiCandidates = ["/api/rockets", "http://localhost:5000/api/rockets"];
+  let lastError = "";
 
-  try {
-    for (const url of apiCandidates) {
-      try {
-        const response = await fetch(url, { method: "GET" });
-        if (!response.ok) {
-          continue;
-        }
-
-        const rockets = await response.json();
-        if (Array.isArray(rockets) && rockets.length > 0) {
-          return rockets;
-        }
-      } catch (_) {
-        // Try next candidate endpoint.
+  for (const url of apiCandidates) {
+    try {
+      const response = await fetch(url, { method: "GET" });
+      if (!response.ok) {
+        lastError = `${url} returned ${response.status}`;
+        continue;
       }
-    }
 
-    console.warn("Rocket API unavailable, using bundled rocket data.");
-    return rocketData_Object;
-  } catch (error) {
-    console.error("Error fetching rocket data:", error);
-    return rocketData_Object;
+      const rockets = await response.json();
+      if (Array.isArray(rockets) && rockets.length > 0) {
+        return rockets;
+      }
+
+      lastError = `${url} returned empty rocket data`;
+    } catch (error) {
+      lastError = `${url} failed: ${error.message}`;
+    }
   }
+
+  throw new Error(lastError || "Rocket API unavailable");
 }
 
 // Function to display rocket cards
 async function displayRockets() {
-  const rockets = await fetchRocketData();
   const rocketContainer = document.getElementById("rocketsContainer");
-  console.log(rocketContainer);
   rocketContainer.innerHTML = ""; // Clear existing cards
+  document.getElementById("warn").style.display = "none";
+
+  let rockets = [];
+  try {
+    rockets = await fetchRocketData();
+  } catch (error) {
+    console.error("Error fetching rocket data:", error);
+    document.getElementById("warn").textContent = "Rocket API is unavailable right now.";
+    document.getElementById("warn").style.display = "block";
+    return;
+  }
 
   let key = document.getElementById("key").value;
 
   let found = false;
-  document.getElementById("warn").style.display = "none";
 
   rockets.forEach((rocket) => {
 
@@ -590,6 +596,7 @@ async function displayRockets() {
 
   if(!found)
   {
+    document.getElementById("warn").textContent = "No Entry Found";
     document.getElementById("warn").style.display = "block";
   }
 }

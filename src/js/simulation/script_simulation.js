@@ -8,6 +8,8 @@ const scale = 0.02;
 const radius = 6371 * scale;
 const intervalTime = 1000;
 const MAX_SATELLITES = 300; // cap to keep performance stable
+const REFRESH_TLE_INTERVAL_MS = 60 * 1000;
+const SATELLITE_API_CANDIDATES = ["/api/satellites?limit=300", "http://localhost:5000/api/satellites?limit=300"];
 const FALLBACK_TLES = [
   `ISS (ZARYA)
 1 25544U 98067A   24169.56406250  .00016717  00000+0  30259-3 0  9997
@@ -44,9 +46,7 @@ scene.add(earthMesh);
 addLighting(scene);
 
 // Load and Initialize Satellites
-// const filePath = "/src/data/tles.txt";
-// readFileAndGetTLEs(filePath, initializeSatellites);
-fetchTLEsFromCelestrak(initializeSatellites);
+loadSatellitesFromBackend(initializeSatellites);
 
 // Event Listeners
 window.addEventListener("mousemove", onMouseMove);
@@ -104,69 +104,61 @@ function addLighting(scene) {
   scene.add(sunLight);
 }
 
-function fetchTLEsFromCelestrak(callback) {
-  const sources = [
-    {
-      name: "GitHub mirror",
-      url: "https://raw.githubusercontent.com/shashwatak/satellite-js/master/test/resources/tle.txt",
-      proxies: [(u) => u],
-    },
-    {
-      name: "Celestrak",
-      url: "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle",
-      proxies: [
-        (u) => u,
-        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-      ],
-    },
-  ];
-
-  setStatus("Loading live satellites...");
-  let lastError = "";
-
-  async function tryFetch() {
-    for (const source of sources) {
-      for (const makeUrl of source.proxies) {
-        try {
-          const fetchUrl = makeUrl(source.url);
-          console.log(`Trying to fetch TLEs from: ${fetchUrl}`);
-          setStatus(`Loading from ${source.name}...`);
-          const response = await fetch(fetchUrl);
-          if (!response.ok) {
-            lastError = `${source.name} responded ${response.status}`;
-            continue;
-          }
-
-          const data = await response.text();
-          if (data.trim().startsWith("<")) {
-            lastError = `${source.name} returned HTML (likely blocked)`;
-            continue;
-          }
-
-          const tles = parseTLEList(data, MAX_SATELLITES);
-          if (tles.length > 0) {
-            console.log(`Successfully loaded ${tles.length} satellites`);
-            setStatus(`Loaded ${tles.length} satellites from ${source.name}.`);
-            callback(tles);
-            return;
-          }
-          lastError = `${source.name} returned no TLE lines`;
-        } catch (error) {
-          lastError = `${source.name} failed: ${error.message}`;
-          console.log("Fetch failed, trying next option...", error.message);
-        }
-      }
-    }
-    console.error("All fetch attempts failed for TLE data");
-    setStatus(
-      `Live data unavailable (${lastError || "no response"}). Using fallback satellites.`,
-      true
-    );
-    callback(FALLBACK_TLES);
+function toTleString(satelliteRecord) {
+  if (!satelliteRecord || !satelliteRecord.tleLine1 || !satelliteRecord.tleLine2) {
+    return null;
   }
 
-  tryFetch();
+  const name = satelliteRecord.name || `NORAD ${satelliteRecord.noradId || "UNKNOWN"}`;
+  return `${name}\n${satelliteRecord.tleLine1}\n${satelliteRecord.tleLine2}`;
+}
+
+async function fetchSatellitesFromApi() {
+  let lastError = "";
+
+  for (const url of SATELLITE_API_CANDIDATES) {
+    try {
+      const response = await fetch(url, { method: "GET" });
+      if (!response.ok) {
+        lastError = `${url} returned ${response.status}`;
+        continue;
+      }
+
+      const records = await response.json();
+      if (!Array.isArray(records) || records.length === 0) {
+        lastError = `${url} returned empty satellite list`;
+        continue;
+      }
+
+      const tles = records
+        .map(toTleString)
+        .filter(Boolean)
+        .slice(0, MAX_SATELLITES);
+
+      if (tles.length > 0) {
+        return { tles, source: url };
+      }
+      lastError = `${url} contained no valid TLE rows`;
+    } catch (error) {
+      lastError = `${url} failed: ${error.message}`;
+    }
+  }
+
+  throw new Error(lastError || "Satellite API unreachable");
+}
+
+function loadSatellitesFromBackend(callback) {
+  setStatus("Loading satellites from backend API...");
+  fetchSatellitesFromApi()
+    .then(({ tles, source }) => {
+      setStatus(`Loaded ${tles.length} satellites from backend (${source}).`);
+      callback(tles);
+    })
+    .catch((error) => {
+      console.error("Satellite API load failed:", error.message);
+      setStatus(`Backend satellite API unavailable (${error.message}). Using fallback satellites.`, true);
+      callback(FALLBACK_TLES);
+    });
 }
 
 function parseTLEList(data, limit) {
@@ -188,6 +180,28 @@ function initializeSatellites(tles) {
   satellites = tles.map((tle) => new Satellite(tle));
   setInterval(updateAllSatellites, intervalTime);
   setInterval(updateActiveSatellite, intervalTime);
+  setInterval(refreshSatellitesFromBackend, REFRESH_TLE_INTERVAL_MS);
+}
+
+async function refreshSatellitesFromBackend() {
+  try {
+    const { tles } = await fetchSatellitesFromApi();
+    const nextByName = new Map(
+      tles.map((tle) => {
+        const satName = getSatelliteName(tle);
+        return [satName, tle];
+      })
+    );
+
+    satellites.forEach((sat) => {
+      const replacement = nextByName.get(sat.satName);
+      if (replacement && replacement !== sat.tle) {
+        sat.tle = replacement;
+      }
+    });
+  } catch (error) {
+    console.warn("Satellite refresh skipped:", error.message);
+  }
 }
 
 function setStatus(message, isError = false) {
