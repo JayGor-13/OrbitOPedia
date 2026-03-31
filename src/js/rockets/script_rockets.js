@@ -508,12 +508,30 @@ function handleRocketClick(rocket) {
 }
 
 async function fetchRocketData() {
+  const apiCandidates = ["/api/rockets", "http://localhost:5000/api/rockets"];
+
   try {
-    console.log(rocketData_Object);
+    for (const url of apiCandidates) {
+      try {
+        const response = await fetch(url, { method: "GET" });
+        if (!response.ok) {
+          continue;
+        }
+
+        const rockets = await response.json();
+        if (Array.isArray(rockets) && rockets.length > 0) {
+          return rockets;
+        }
+      } catch (_) {
+        // Try next candidate endpoint.
+      }
+    }
+
+    console.warn("Rocket API unavailable, using bundled rocket data.");
     return rocketData_Object;
   } catch (error) {
     console.error("Error fetching rocket data:", error);
-    return [];
+    return rocketData_Object;
   }
 }
 

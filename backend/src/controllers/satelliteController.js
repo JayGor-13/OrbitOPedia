@@ -79,12 +79,27 @@ async function getSatellites() {
     // DB empty – fetch from Celestrak, seed DB, and return
     try {
       const fresh = await fetchTLEsFromCelestrak();
-      await Satellite.insertMany(fresh, { ordered: false }).catch((err) => {
-        console.warn("Satellite DB seed warning:", err.message);
+      console.log(`Attempting to insert ${fresh.length} satellites into MongoDB...`);
+      const result = await Satellite.insertMany(fresh, { ordered: false }).catch((err) => {
+        console.error("❌ Satellite DB seed FAILED:", err.message);
+        console.error("Full error:", JSON.stringify(err, null, 2));
+        return null;
       });
+      if (result) {
+        console.log(`✅ Successfully inserted ${result.length} satellites into MongoDB`);
+      }
       return fresh;
     } catch (err) {
       console.error("Celestrak fetch failed, using fallback TLEs:", err.message);
+      console.log(`Attempting to insert ${FALLBACK_TLES.length} fallback satellites...`);
+      const fbResult = await Satellite.insertMany(FALLBACK_TLES, { ordered: false }).catch((seedErr) => {
+        console.error("❌ Fallback satellite DB seed FAILED:", seedErr.message);
+        console.error("Full error:", JSON.stringify(seedErr, null, 2));
+        return null;
+      });
+      if (fbResult) {
+        console.log(`✅ Successfully inserted ${fbResult.length} fallback satellites`);
+      }
       return FALLBACK_TLES;
     }
   }

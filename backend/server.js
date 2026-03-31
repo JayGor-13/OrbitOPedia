@@ -5,12 +5,15 @@
  * Starts the Express HTTP server and connects to MongoDB Atlas.
  */
 
-require("dotenv").config();
+// Load environment variables FIRST, before any other imports
+require("dotenv").config({ path: require("path").resolve(__dirname, ".env") });
 
 const app = require("./src/app");
 const connectDB = require("./src/config/db");
 
 const PORT = process.env.PORT || 5000;
+
+console.log("🔍 Checking MONGO_URI:", process.env.MONGO_URI ? "✅ Found" : "❌ Not found");
 
 // Connect to MongoDB Atlas, then start the server.
 // When MONGO_URI is not set we still start the server so that
