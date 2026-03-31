@@ -10,7 +10,7 @@ const intervalTime = 1000;
 const MAX_SATELLITES = 300; // cap to keep performance stable
 const REFRESH_TLE_INTERVAL_MS = 60 * 1000;
 const SATELLITE_API_CANDIDATES = ["/api/satellites?limit=300", "https://orbitopedia.onrender.com/api/satellites?limit=300"];
-const FALLBACK_TLES = [
+const BASE_FALLBACK_TLES = [
   `ISS (ZARYA)
 1 25544U 98067A   24169.56406250  .00016717  00000+0  30259-3 0  9997
 2 25544  51.6413  74.3405 0005465  54.8881  62.6016 15.49894142466761`,
@@ -24,6 +24,20 @@ const FALLBACK_TLES = [
 1 25994U 99068A   24169.53335552  .00000083  00000+0  58625-4 0  9993
 2 25994  98.2127 220.5113 0001698  93.7561  29.5647 14.57111213172570`,
 ];
+
+function buildExtendedFallbackTles(targetCount = MAX_SATELLITES) {
+  const extended = [];
+  for (let i = 0; i < targetCount; i += 1) {
+    const base = BASE_FALLBACK_TLES[i % BASE_FALLBACK_TLES.length];
+    const parts = base.split("\n");
+    const label = parts[0] || "SATELLITE";
+    const copyIndex = Math.floor(i / BASE_FALLBACK_TLES.length) + 1;
+    extended.push(`${label} [${copyIndex}]\n${parts[1]}\n${parts[2]}`);
+  }
+  return extended;
+}
+
+const FALLBACK_TLES = buildExtendedFallbackTles(MAX_SATELLITES);
 
 // Global Variables
 let satellites = [];
