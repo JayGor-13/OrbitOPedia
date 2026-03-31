@@ -4,24 +4,27 @@ const satellite = require("satellite.js");
  * Parse TLE file format (space-separated lines)
  */
 function parseTLEFile(data) {
-  const lines = data.trim().split("\n");
+  const lines = data
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
   const satellites = [];
 
-  for (let i = 0; i < lines.length; i += 2) {
-    if (i + 1 < lines.length) {
-      const name = lines[i].trim();
-      const tleLine1 = lines[i + 1].trim();
-      const tleLine2 = lines[i + 2]?.trim() || "";
+  for (let i = 0; i + 2 < lines.length; i += 3) {
+    const name = lines[i];
+    const tleLine1 = lines[i + 1];
+    const tleLine2 = lines[i + 2];
 
-      if (tleLine1.startsWith("1 ")) {
-        satellites.push({
-          name,
-          noradId: parseInt(tleLine1.substring(2, 7), 10),
-          tleLine1,
-          tleLine2,
-        });
-      }
+    if (!tleLine1.startsWith("1 ") || !tleLine2.startsWith("2 ")) {
+      continue;
     }
+
+    satellites.push({
+      name,
+      noradId: parseInt(tleLine1.substring(2, 7), 10),
+      tleLine1,
+      tleLine2,
+    });
   }
 
   return satellites;

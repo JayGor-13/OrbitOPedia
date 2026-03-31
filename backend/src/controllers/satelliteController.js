@@ -26,6 +26,10 @@ const MAX_SATELLITE_LIMIT = 300;
 const TLE_SOURCE_URL =
   process.env.TLE_SOURCE_URL ||
   "https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle";
+const TLE_SOURCE_URLS = [
+  TLE_SOURCE_URL,
+  "https://www.celestrak.com/NORAD/elements/gp.php?GROUP=active&FORMAT=tle",
+];
 
 const TLE_CACHE_TTL = parseInt(process.env.TLE_CACHE_TTL || "3600", 10) * 1000;
 
@@ -60,8 +64,29 @@ const FALLBACK_TLES = [
 // ── Helper: fetch TLE data from Celestrak ────────────────────────────────────
 
 async function fetchTLEsFromCelestrak() {
-  const response = await axios.get(TLE_SOURCE_URL, { timeout: 10000 });
-  return parseTLEFile(response.data);
+  let lastError = "No TLE source attempted";
+
+  for (const url of TLE_SOURCE_URLS) {
+    try {
+      const response = await axios.get(url, {
+        timeout: 15000,
+        headers: {
+          "User-Agent": "OrbitOPedia/1.0",
+          Accept: "text/plain, */*",
+        },
+      });
+
+      const parsed = parseTLEFile(response.data);
+      if (parsed.length > 0) {
+        return parsed;
+      }
+      lastError = `No TLE rows parsed from ${url}`;
+    } catch (err) {
+      lastError = `${url} failed: ${err.message}`;
+    }
+  }
+
+  throw new Error(lastError);
 }
 
 async function upsertSatellites(records) {
