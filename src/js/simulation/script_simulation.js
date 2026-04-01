@@ -9,7 +9,11 @@ const radius = 6371 * scale;
 const intervalTime = 1000;
 const MAX_SATELLITES = 1000; // upper cap for richer live constellation view
 const REFRESH_TLE_INTERVAL_MS = 60 * 1000;
-const SATELLITE_API_CANDIDATES = ["/api/satellites?limit=1000", "https://orbitopedia.onrender.com/api/satellites?limit=1000"];
+const isLocalDev =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const SATELLITE_API_CANDIDATES = isLocalDev
+  ? ["/api/satellites?limit=1000", "https://orbitopedia.onrender.com/api/satellites?limit=1000"]
+  : ["https://orbitopedia.onrender.com/api/satellites?limit=1000", "/api/satellites?limit=1000"];
 const BASE_FALLBACK_TLES = [
   `ISS (ZARYA)
 1 25544U 98067A   24169.56406250  .00016717  00000+0  30259-3 0  9997
@@ -190,7 +194,30 @@ function initializeSatellites(tles) {
     setStatus("Falling back to local sample satellites.", true);
     tles = FALLBACK_TLES;
   }
-  satellites = tles.map((tle) => new Satellite(tle));
+
+  const nextSatellites = [];
+  let invalidCount = 0;
+
+  for (const tle of tles) {
+    try {
+      const sat = new Satellite(tle);
+      nextSatellites.push(sat);
+    } catch (error) {
+      invalidCount += 1;
+      console.warn("Skipping invalid satellite TLE:", error.message);
+    }
+  }
+
+  satellites = nextSatellites;
+  if (invalidCount > 0) {
+    setStatus(
+      `Loaded ${tles.length} from backend. Rendering ${satellites.length}, skipped ${invalidCount} invalid rows.`,
+      true
+    );
+  } else {
+    setStatus(`Loaded ${satellites.length} satellites from backend.`);
+  }
+
   setInterval(updateAllSatellites, intervalTime);
   setInterval(updateActiveSatellite, intervalTime);
   setInterval(refreshSatellitesFromBackend, REFRESH_TLE_INTERVAL_MS);
@@ -237,6 +264,14 @@ class Satellite {
 
   updateSatelliteInfo() {
     const _info = getSatelliteInfo(this.tle);
+    if (
+      !_info ||
+      !Number.isFinite(_info.lat) ||
+      !Number.isFinite(_info.lng) ||
+      !Number.isFinite(_info.height)
+    ) {
+      throw new Error(`Invalid orbital solution for ${this.satName}`);
+    }
     this.lat = _info.lat;
     this.lng = _info.lng;
     this.height = _info.height;

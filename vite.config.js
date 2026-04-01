@@ -5,6 +5,12 @@ export default defineConfig({
   root: ".", // Set the root to the project root
   server: {
     open: "/index.html", // Set the default page to open
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: "dist", // Ensure build outputs to the correct directory

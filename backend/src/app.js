@@ -21,7 +21,11 @@ const app = express();
 // Allow the Vite dev-server and the Vercel deployment to call this API.
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
-  : ["http://localhost:5173", "https://orbitopedia.vercel.app"];
+  : [
+      "http://localhost:5173",
+      "https://orbitopedia.vercel.app",
+      "https://orbit-o-pedia.vercel.app",
+    ];
 
 app.use(
   cors({
