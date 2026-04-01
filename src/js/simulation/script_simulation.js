@@ -8,7 +8,9 @@ const scale = 0.02;
 const radius = 6371 * scale;
 const intervalTime = 1000;
 const MAX_SATELLITES = 1000; // upper cap for richer live constellation view
+const FALLBACK_SATELLITES_COUNT = 5000;
 const REFRESH_TLE_INTERVAL_MS = 60 * 1000;
+const SATELLITE_CACHE_KEY = "orbitopedia_satellite_tle_cache_v1";
 const isLocalDev =
   window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const SATELLITE_API_CANDIDATES = isLocalDev
@@ -41,7 +43,7 @@ function buildExtendedFallbackTles(targetCount = MAX_SATELLITES) {
   return extended;
 }
 
-const FALLBACK_TLES = buildExtendedFallbackTles(MAX_SATELLITES);
+const FALLBACK_TLES = buildExtendedFallbackTles(FALLBACK_SATELLITES_COUNT);
 
 // Global Variables
 let satellites = [];
@@ -131,6 +133,28 @@ function toTleString(satelliteRecord) {
   return `${name}\n${satelliteRecord.tleLine1}\n${satelliteRecord.tleLine2}`;
 }
 
+function saveSatelliteCache(tles) {
+  try {
+    if (!Array.isArray(tles) || tles.length === 0) return;
+    localStorage.setItem(SATELLITE_CACHE_KEY, JSON.stringify(tles));
+  } catch (error) {
+    console.warn("Satellite cache save skipped:", error.message);
+  }
+}
+
+function loadSatelliteCache() {
+  try {
+    const raw = localStorage.getItem(SATELLITE_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((tle) => typeof tle === "string" && tle.includes("\n"));
+  } catch (error) {
+    console.warn("Satellite cache read skipped:", error.message);
+    return [];
+  }
+}
+
 async function fetchSatellitesFromApi() {
   let lastError = "";
 
@@ -154,6 +178,7 @@ async function fetchSatellitesFromApi() {
         .slice(0, MAX_SATELLITES);
 
       if (tles.length > 0) {
+        saveSatelliteCache(tles);
         return { tles, source: url };
       }
       lastError = `${url} contained no valid TLE rows`;
@@ -168,12 +193,21 @@ async function fetchSatellitesFromApi() {
 function loadSatellitesFromBackend(callback) {
   setStatus("Loading satellites from backend API...");
   fetchSatellitesFromApi()
-    .then(({ tles }) => {
-      setStatus(`Loaded ${tles.length} satellites from backend.`);
+    .then(({ tles, source }) => {
+      setStatus(`Loaded ${tles.length} satellites from API (${source}).`);
       callback(tles);
     })
     .catch(() => {
-      setStatus("Live satellite feed unavailable. Using fallback satellites.", true);
+      const cachedTles = loadSatelliteCache();
+      if (cachedTles.length > 0) {
+        setStatus(
+          `Live API unavailable. Using cached API snapshot (${cachedTles.length} satellites).`,
+          true
+        );
+        callback(cachedTles);
+        return;
+      }
+      setStatus("Live API unavailable and no cache found. Using synthetic fallback satellites.", true);
       callback(FALLBACK_TLES);
     });
 }

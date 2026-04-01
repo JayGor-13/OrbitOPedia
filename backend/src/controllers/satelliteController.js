@@ -27,6 +27,7 @@ let tleCache = {
 
 const MAX_SATELLITE_LIMIT = parseInt(process.env.MAX_SATELLITE_LIMIT || "1000", 10);
 const MIN_UPSTREAM_SATELLITES = parseInt(process.env.MIN_UPSTREAM_SATELLITES || "500", 10);
+const FALLBACK_SATELLITE_COUNT = parseInt(process.env.FALLBACK_SATELLITE_COUNT || "5000", 10);
 
 const TLE_SOURCE_URL =
   process.env.TLE_SOURCE_URL ||
@@ -191,8 +192,8 @@ async function getSatellites() {
         return existing;
       }
 
-      console.log(`Seeding extended fallback satellites (${MAX_SATELLITE_LIMIT} records).`);
-      const fallback = buildExtendedFallbacks(MAX_SATELLITE_LIMIT);
+      console.log(`Seeding extended fallback satellites (${FALLBACK_SATELLITE_COUNT} records).`);
+      const fallback = buildExtendedFallbacks(FALLBACK_SATELLITE_COUNT);
       await upsertSatellites(fallback);
       const refreshed = await Satellite.find().lean();
       return refreshed.length ? refreshed : fallback;
@@ -211,7 +212,7 @@ async function getSatellites() {
     return fresh;
   } catch (err) {
     console.error("Celestrak fetch failed, using cached/fallback TLEs:", err.message);
-    return tleCache.data.length ? tleCache.data : buildExtendedFallbacks(MAX_SATELLITE_LIMIT);
+    return tleCache.data.length ? tleCache.data : buildExtendedFallbacks(FALLBACK_SATELLITE_COUNT);
   }
 }
 
