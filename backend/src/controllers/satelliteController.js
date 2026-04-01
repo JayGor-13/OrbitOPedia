@@ -25,7 +25,7 @@ let tleCache = {
   fetchedAt: null,
 };
 
-const MAX_SATELLITE_LIMIT = parseInt(process.env.MAX_SATELLITE_LIMIT || "1000", 10);
+const MAX_SATELLITE_LIMIT = parseInt(process.env.MAX_SATELLITE_LIMIT || "9000", 10);
 const MIN_UPSTREAM_SATELLITES = parseInt(process.env.MIN_UPSTREAM_SATELLITES || "500", 10);
 const FALLBACK_SATELLITE_COUNT = parseInt(process.env.FALLBACK_SATELLITE_COUNT || "5000", 10);
 
