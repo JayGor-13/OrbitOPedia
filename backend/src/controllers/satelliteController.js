@@ -12,7 +12,11 @@
 
 const axios = require("axios");
 const Satellite = require("../models/Satellite");
-const { getSatellitePosition: calcPosition, parseTLEFile } = require("../utils/satelliteCalculator");
+const {
+  getSatellitePosition: calcPosition,
+  parseTLEFile,
+  extractOrbitalElements,
+} = require("../utils/satelliteCalculator");
 const mongoose = require("mongoose");
 
 // ── In-memory TLE cache (used when MongoDB is unavailable) ───────────────────
@@ -21,7 +25,8 @@ let tleCache = {
   fetchedAt: null,
 };
 
-const MAX_SATELLITE_LIMIT = 300;
+const MAX_SATELLITE_LIMIT = parseInt(process.env.MAX_SATELLITE_LIMIT || "1000", 10);
+const MIN_UPSTREAM_SATELLITES = parseInt(process.env.MIN_UPSTREAM_SATELLITES || "500", 10);
 
 const TLE_SOURCE_URL =
   process.env.TLE_SOURCE_URL ||
@@ -29,7 +34,6 @@ const TLE_SOURCE_URL =
 const TLE_SOURCE_URLS = [
   TLE_SOURCE_URL,
   "https://www.celestrak.com/NORAD/elements/gp.php?GROUP=active&FORMAT=tle",
-  "https://raw.githubusercontent.com/shashwatak/satellite-js/master/test/resources/tle.txt",
 ];
 
 const TLE_CACHE_TTL = parseInt(process.env.TLE_CACHE_TTL || "3600", 10) * 1000;
@@ -93,10 +97,10 @@ async function fetchTLEsFromCelestrak() {
       });
 
       const parsed = parseTLEFile(response.data);
-      if (parsed.length > 0) {
+      if (parsed.length >= MIN_UPSTREAM_SATELLITES) {
         return parsed;
       }
-      lastError = `No TLE rows parsed from ${url}`;
+      lastError = `${url} returned only ${parsed.length} satellites (< ${MIN_UPSTREAM_SATELLITES})`;
     } catch (err) {
       lastError = `${url} failed: ${err.message}`;
     }
@@ -121,20 +125,34 @@ async function upsertSatellites(records) {
         sat.noradId !== null &&
         sat.noradId !== undefined
     )
-    .map((sat) => ({
-      updateOne: {
-        filter: { noradId: Number(sat.noradId) },
-        update: {
-          $set: {
-            name: sat.name,
-            tleLine1: sat.tleLine1,
-            tleLine2: sat.tleLine2,
-            lastUpdated: now,
+    .map((sat) => {
+      const orbital = extractOrbitalElements(sat.tleLine1, sat.tleLine2) || {};
+      return {
+        updateOne: {
+          filter: { noradId: Number(sat.noradId) },
+          update: {
+            $set: {
+              name: sat.name,
+              tleLine1: sat.tleLine1,
+              tleLine2: sat.tleLine2,
+              epochDate: sat.epochDate || orbital.epochDate || now,
+              inclination: orbital.inclination,
+              eccentricity: orbital.eccentricity,
+              meanMotion: orbital.meanMotion,
+              semiMajorAxis: orbital.semiMajorAxis,
+              argumentOfPerigee: orbital.argumentOfPerigee,
+              meanAnomaly: orbital.meanAnomaly,
+              apogee: orbital.apogee,
+              perigee: orbital.perigee,
+              period: orbital.period,
+              raan: orbital.raan,
+              lastUpdated: now,
+            },
           },
+          upsert: true,
         },
-        upsert: true,
-      },
-    }));
+      };
+    });
 
   if (ops.length > 0) {
     await Satellite.bulkWrite(ops, { ordered: false });
@@ -169,11 +187,11 @@ async function getSatellites() {
     } catch (err) {
       console.error("Celestrak refresh failed, checking existing DB cache:", err.message);
       const existing = await Satellite.find().lean();
-      if (existing.length >= MAX_SATELLITE_LIMIT) {
+      if (existing.length >= MIN_UPSTREAM_SATELLITES) {
         return existing;
       }
 
-      console.log("Seeding extended fallback satellites (300 records).");
+      console.log(`Seeding extended fallback satellites (${MAX_SATELLITE_LIMIT} records).`);
       const fallback = buildExtendedFallbacks(MAX_SATELLITE_LIMIT);
       await upsertSatellites(fallback);
       const refreshed = await Satellite.find().lean();
@@ -298,4 +316,6 @@ module.exports = {
   searchSatellites,
   getSatelliteById,
   getSatellitePosition,
+  fetchTLEsFromCelestrak,
+  upsertSatellites,
 };

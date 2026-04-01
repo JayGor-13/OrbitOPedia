@@ -7,9 +7,9 @@ import { getGroundTracks, getLatLngObj, getOrbitTrack, getSatelliteInfo, getSate
 const scale = 0.02;
 const radius = 6371 * scale;
 const intervalTime = 1000;
-const MAX_SATELLITES = 300; // cap to keep performance stable
+const MAX_SATELLITES = 1000; // upper cap for richer live constellation view
 const REFRESH_TLE_INTERVAL_MS = 60 * 1000;
-const SATELLITE_API_CANDIDATES = ["/api/satellites?limit=300", "https://orbitopedia.onrender.com/api/satellites?limit=300"];
+const SATELLITE_API_CANDIDATES = ["/api/satellites?limit=1000", "https://orbitopedia.onrender.com/api/satellites?limit=1000"];
 const BASE_FALLBACK_TLES = [
   `ISS (ZARYA)
 1 25544U 98067A   24169.56406250  .00016717  00000+0  30259-3 0  9997

@@ -18,9 +18,18 @@ const satelliteSchema = new mongoose.Schema({
   inclination: Number,
   eccentricity: Number,
   meanMotion: Number,
+  semiMajorAxis: Number,
+  argumentOfPerigee: Number,
+  meanAnomaly: Number,
+  apogee: Number,
+  perigee: Number,
+  period: Number,
+  raan: Number,
   lastUpdated: { type: Date, default: Date.now },
   country: String,
   status: { type: String, enum: ["active", "inactive"], default: "active" },
 }, { timestamps: true });
+
+satelliteSchema.index({ status: 1, lastUpdated: -1 });
 
 module.exports = mongoose.model("Satellite", satelliteSchema);

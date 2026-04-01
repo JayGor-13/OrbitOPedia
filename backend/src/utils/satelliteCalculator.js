@@ -66,4 +66,64 @@ function getSatellitePosition(tleLine1, tleLine2) {
   }
 }
 
-module.exports = { parseTLEFile, getSatellitePosition };
+function toDegrees(radians) {
+  return (radians * 180) / Math.PI;
+}
+
+function round(value, decimals = 6) {
+  if (!Number.isFinite(value)) return null;
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+}
+
+/**
+ * Extract relatively static orbital metadata from a TLE pair.
+ * These values are persisted and refreshed from upstream every hour.
+ */
+function extractOrbitalElements(tleLine1, tleLine2) {
+  try {
+    const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
+
+    if (!satrec || Number.isNaN(satrec.no) || satrec.no <= 0) {
+      return null;
+    }
+
+    const earthRadiusKm = 6371;
+    const muKm3PerSec2 = 398600.4418;
+    const meanMotionRadPerMin = satrec.no;
+    const meanMotionRadPerSec = meanMotionRadPerMin / 60;
+    const meanMotionRevPerDay = (meanMotionRadPerMin * 1440) / (2 * Math.PI);
+    const periodMinutes = (2 * Math.PI) / meanMotionRadPerMin;
+
+    const semiMajorAxisKm = Math.cbrt(
+      muKm3PerSec2 / (meanMotionRadPerSec * meanMotionRadPerSec)
+    );
+    const eccentricity = satrec.ecco;
+    const apogeeKm = semiMajorAxisKm * (1 + eccentricity) - earthRadiusKm;
+    const perigeeKm = semiMajorAxisKm * (1 - eccentricity) - earthRadiusKm;
+
+    let epochDate = null;
+    if (satrec.jdsatepoch && Number.isFinite(satrec.jdsatepoch)) {
+      epochDate = satellite.jdayToDate(satrec.jdsatepoch);
+    }
+
+    return {
+      epochDate,
+      inclination: round(toDegrees(satrec.inclo), 6),
+      eccentricity: round(eccentricity, 9),
+      meanMotion: round(meanMotionRevPerDay, 8),
+      semiMajorAxis: round(semiMajorAxisKm, 3),
+      argumentOfPerigee: round(toDegrees(satrec.argpo), 6),
+      meanAnomaly: round(toDegrees(satrec.mo), 6),
+      apogee: round(apogeeKm, 3),
+      perigee: round(perigeeKm, 3),
+      period: round(periodMinutes, 6),
+      raan: round(toDegrees(satrec.nodeo), 6),
+    };
+  } catch (err) {
+    console.error("Orbital extraction error:", err.message);
+    return null;
+  }
+}
+
+module.exports = { parseTLEFile, getSatellitePosition, extractOrbitalElements };

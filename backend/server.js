@@ -10,6 +10,7 @@ require("dotenv").config({ path: require("path").resolve(__dirname, ".env") });
 
 const app = require("./src/app");
 const connectDB = require("./src/config/db");
+const { startSatelliteUpdateWorker } = require("./src/workers/satelliteUpdateWorker");
 
 const PORT = process.env.PORT || 5000;
 
@@ -19,6 +20,7 @@ console.log("🔍 Checking MONGO_URI:", process.env.MONGO_URI ? "✅ Found" : "�
 // When MONGO_URI is not set we still start the server so that
 // the health-check and static data endpoints work without a database.
 connectDB().finally(() => {
+  startSatelliteUpdateWorker();
   app.listen(PORT, () => {
     console.log(`OrbitOPedia API server running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
